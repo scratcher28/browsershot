@@ -671,6 +671,7 @@ class Browsershot
     protected function callBrowser(array $command)
     {
         $fullCommand = $this->getFullCommand($command);
+		$fullCommand = str_replace("^", "", $fullCommand);
 
         $process = Process::fromShellCommandline($fullCommand)->setTimeout($this->timeout);
 
@@ -695,12 +696,13 @@ class Browsershot
         $nodeBinary = $this->nodeBinary ?: 'node';
 
         $binPath = $this->binPath ?: __DIR__.'/../bin/browser.js';
+        $command = str_replace("\\", "\\\\", $command);
 
         if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
             $fullCommand =
-                $nodeBinary.' '
+                '"' . $nodeBinary. '" '
                 .escapeshellarg($binPath).' '
-                .'"'.str_replace('"', '\"', (json_encode($command))).'"';
+                .'"'.str_replace('"', '\"', str_replace("\\\"", "\\\\\"", preg_replace("/([<>])/", "^$1", json_encode($command)))).'"';
 
             return escapeshellcmd($fullCommand);
         }
